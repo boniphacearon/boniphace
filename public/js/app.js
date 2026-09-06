@@ -1,3 +1,4 @@
+import { api } from './api.js';
 import { Auth } from './auth.js';
 import { Chat } from './chat.js';
 import { Memory } from './memory.js';
@@ -5,7 +6,7 @@ import { Voice } from './voice.js';
 import { Projects } from './projects.js';
 import { Settings } from './settings.js';
 
-// State object
+// State object - MUST be defined before anything else
 const state = {
   token: localStorage.getItem('bp_token'),
   user: null,
@@ -32,7 +33,8 @@ async function boot() {
         Memory.load(),
         Settings.load()
       ]);
-    } catch {
+    } catch (err) {
+      console.error('Boot error:', err);
       localStorage.removeItem('bp_token');
       state.token = null;
       showAuth();
@@ -76,14 +78,15 @@ function switchView(view) {
   if (titleEl) titleEl.textContent = titles[view] || '';
 }
 
-// Event Listeners
+// Set up all event listeners when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
   // Navigation buttons
   document.querySelectorAll('[data-view]').forEach(btn => {
     btn.addEventListener('click', () => {
       switchView(btn.dataset.view);
       if (window.innerWidth <= 768) {
-        document.getElementById('sidebar').classList.remove('open');
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) sidebar.classList.remove('open');
       }
     });
   });
@@ -92,7 +95,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const sidebarToggle = document.getElementById('sidebar-toggle');
   if (sidebarToggle) {
     sidebarToggle.addEventListener('click', () => {
-      document.getElementById('sidebar').classList.toggle('open');
+      const sidebar = document.getElementById('sidebar');
+      if (sidebar) sidebar.classList.toggle('open');
     });
   }
 
@@ -172,30 +176,8 @@ function setupInstallPrompt() {
   }
 }
 
-// API Helper
-export async function api(path, options = {}) {
-  const headers = { ...(options.headers || {}) };
-  if (state.token) headers['Authorization'] = `Bearer ${state.token}`;
-  
-  if (!(options.body instanceof FormData) && options.body && typeof options.body === 'object') {
-    headers['Content-Type'] = 'application/json';
-    options.body = JSON.stringify(options.body);
-  }
-  
-  const res = await fetch(path, { ...options, headers });
-  
-  if (res.status === 401) {
-    localStorage.removeItem('bp_token');
-    location.reload();
-    throw new Error('Session expired');
-  }
-  
-  const text = await res.text();
-  const data = text ? JSON.parse(text) : {};
-  
-  if (!res.ok) throw new Error(data.error || 'Request failed');
-  return data;
-}
+// Make api available globally for auth.js
+window.api = api;
 
 // Start the app
 boot();
