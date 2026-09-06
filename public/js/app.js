@@ -1,12 +1,6 @@
-import { Auth } from './auth.js';
-import { Chat } from './chat.js';
-import { Memory } from './memory.js';
-import { Voice } from './voice.js';
-import { Projects } from './projects.js';
-import { Settings } from './settings.js';
-
+// Initialize state FIRST
 const state = {
-  token: localStorage.getItem('bp_token'),
+  token: null,
   user: null,
   settings: {},
   currentConversationId: null,
@@ -15,7 +9,18 @@ const state = {
   attachedFiles: []
 };
 
-window.BP = state; // expose for modules
+window.BP = state;
+
+// Import modules AFTER state is defined
+import { Auth } from './auth.js';
+import { Chat } from './chat.js';
+import { Memory } from './memory.js';
+import { Voice } from './voice.js';
+import { Projects } from './projects.js';
+import { Settings } from './settings.js';
+
+// Load token from storage
+state.token = localStorage.getItem('bp_token');
 
 // ---------- BOOT ----------
 async function boot() {
@@ -112,15 +117,19 @@ function setupInstallPrompt() {
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
-    document.getElementById('install-btn').classList.remove('hidden');
+    const installBtn = document.getElementById('install-btn');
+    if (installBtn) installBtn.classList.remove('hidden');
   });
-  document.getElementById('install-btn').addEventListener('click', async () => {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    await deferredPrompt.userChoice;
-    deferredPrompt = null;
-    document.getElementById('install-btn').classList.add('hidden');
-  });
+  const installBtn = document.getElementById('install-btn');
+  if (installBtn) {
+    installBtn.addEventListener('click', async () => {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      installBtn.classList.add('hidden');
+    });
+  }
 }
 
 // ---------- UTIL ----------
@@ -143,4 +152,5 @@ export async function api(path, options = {}) {
   return data;
 }
 
+// Start the app
 boot();
