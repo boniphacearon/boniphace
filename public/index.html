@@ -24,9 +24,12 @@
     <div class="auth-card">
       <div class="logo">
         <svg viewBox="0 0 512 512" width="72" height="72">
-          <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stop-color="#6EE7B7"/><stop offset="100%" stop-color="#34D399"/>
-          </linearGradient></defs>
+          <defs>
+            <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#6EE7B7"/>
+              <stop offset="100%" stop-color="#34D399"/>
+            </linearGradient>
+          </defs>
           <polygon points="256,20 470,140 470,372 256,492 42,372 42,140" fill="url(#lg)"/>
           <text x="256" y="330" font-family="Arial" font-size="280" font-weight="900" text-anchor="middle" fill="#0a0a0a">B</text>
         </svg>
@@ -48,9 +51,9 @@
 
       <form id="signup-form" class="auth-form">
         <input type="email" id="signup-email" placeholder="Email" required />
-        <input type="text" id="signup-username" placeholder="Username" required pattern="[a-z0-9_]{3,30}" />
+        <input type="text" id="signup-username" placeholder="Username (letters/numbers/underscore only)" required pattern="[a-z0-9_]{3,30}" />
         <input type="text" id="signup-display" placeholder="Display name (optional)" />
-        <input type="password" id="signup-password" placeholder="Password (min 8 chars)" required minlength="8" />
+        <input type="password" id="signup-password" placeholder="Password (min 8 characters)" required minlength="8" />
         <button type="submit" class="btn-primary">Create Account</button>
         <p class="auth-error" id="signup-error"></p>
       </form>
@@ -88,7 +91,7 @@
         <button data-view="memory" class="nav-btn">🧠 Memory</button>
         <button data-view="tools" class="nav-btn">🛠 Tools</button>
         <button data-view="settings" class="nav-btn">⚙️ Settings</button>
-        <button id="logout-btn" class="nav-btn">🚪 Logout</button>
+        <button id="logout-btn" class="nav-btn"> Logout</button>
       </div>
     </aside>
 
@@ -118,9 +121,9 @@
               📎
               <input type="file" id="file-input" multiple hidden />
             </label>
-            <button id="voice-btn" class="icon-btn" title="Voice input">🎤</button>
+            <button id="voice-btn" class="icon-btn" title="Voice input"></button>
             <textarea id="message-input" placeholder="Ask BONIPHACE anything..." rows="1"></textarea>
-            <button id="send-btn" class="send-btn" title="Send">➤</button>
+            <button id="send-btn" class="send-btn" title="Send"></button>
           </div>
           <div id="attached-files" class="attached-files"></div>
         </div>
