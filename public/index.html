@@ -16,9 +16,9 @@
       --radius: 12px; --radius-sm: 8px; --shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
       --transition: all 0.2s ease;
     }
-    body { background: var(--bg-primary); color: var(--text-primary); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; height: 100vh; overflow: hidden; -webkit-font-smoothing: antialiased; }
+    body { background: var(--bg-primary); color: var(--text-primary); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; height: 100vh; overflow: hidden; }
     #app { display: flex; height: 100vh; }
-    #sidebar { width: 280px; background: var(--bg-secondary); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 20px 16px; transition: var(--transition); }
+    #sidebar { width: 280px; background: var(--bg-secondary); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 20px 16px; }
     .brand { display: flex; align-items: center; gap: 12px; font-size: 22px; font-weight: 700; color: var(--accent); margin-bottom: 32px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
     .brand-icon { width: 40px; height: 40px; background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--bg-primary); font-weight: 900; font-size: 24px; box-shadow: 0 4px 12px rgba(110, 231, 183, 0.3); }
     .nav-section { margin-bottom: 24px; }
@@ -146,6 +146,7 @@
     ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: var(--bg-hover); }
     .hidden { display: none !important; }
+    .error-message { color: var(--danger); padding: 12px; background: rgba(239, 68, 68, 0.1); border-radius: var(--radius-sm); margin: 12px 0; }
   </style>
   <script src="https://js.puter.com/v2/"></script>
 </head>
@@ -178,7 +179,7 @@
           </div>
         </div>
       </div>
-      <div id="chat-view" class="view active">
+<div id="chat-view" class="view active">
         <div id="chat-area">
           <div class="welcome-screen" id="welcome-screen">
             <div class="welcome-icon">B</div>
@@ -186,7 +187,7 @@
             <div class="welcome-subtitle">Your Personal AI Assistant - How can I help you today?</div>
             <div class="suggestion-cards">
               <div class="suggestion-card" onclick="useSuggestion('Explain quantum computing in simple terms')"><div class="suggestion-icon">⚛️</div><div class="suggestion-title">Explain quantum computing</div><div class="suggestion-desc">in simple terms</div></div>
-              <div class="suggestion-card" onclick="useSuggestion('Write a Python function to sort a list')"><div class="suggestion-icon"></div><div class="suggestion-title">Write code</div><div class="suggestion-desc">Python sorting function</div></div>
+              <div class="suggestion-card" onclick="useSuggestion('Write a Python function to sort a list')"><div class="suggestion-icon">💻</div><div class="suggestion-title">Write code</div><div class="suggestion-desc">Python sorting function</div></div>
               <div class="suggestion-card" onclick="useSuggestion('What are the best practices for cybersecurity?')"><div class="suggestion-icon">🔒</div><div class="suggestion-title">Cybersecurity tips</div><div class="suggestion-desc">best practices</div></div>
               <div class="suggestion-card" onclick="useSuggestion('Help me plan my study schedule for computer science')"><div class="suggestion-icon">📚</div><div class="suggestion-title">Study planning</div><div class="suggestion-desc">computer science schedule</div></div>
             </div>
@@ -213,11 +214,60 @@
             <div class="stat-card"><div class="stat-icon">💬</div><div class="stat-value" id="stat-conversations">0</div><div class="stat-label">Conversations</div></div>
             <div class="stat-card"><div class="stat-icon">🧠</div><div class="stat-value" id="stat-memories">0</div><div class="stat-label">Memories</div></div>
             <div class="stat-card"><div class="stat-icon">📁</div><div class="stat-value" id="stat-projects">0</div><div class="stat-label">Projects</div></div>
-      <script>
+            <div class="stat-card"><div class="stat-icon">📄</div><div class="stat-value" id="stat-files">0</div><div class="stat-label">Files</div></div>
+          </div>
+          <h2 class="section-title">Recent Activity</h2>
+          <div class="activity-list" id="activity-list">
+            <div class="activity-item"><div class="activity-icon">🚀</div><div class="activity-content"><div class="activity-title">Welcome to BONIPHACE!</div><div class="activity-time">Just now</div></div></div>
+          </div>
+        </div>
+      </div>
+      <div id="memory-view" class="view">
+        <div class="memory-container">
+          <h2 class="section-title">🧠 Memory</h2>
+          <p style="color: var(--text-secondary); margin-bottom: 20px;">BONIPHACE remembers important information across conversations.</p>
+          <div class="memory-controls">
+            <label class="memory-toggle"><input type="checkbox" id="memory-enabled" checked onchange="toggleMemory()"><span>Enable Memory</span></label>
+            <button class="btn btn-danger" onclick="clearAllMemories()">Clear All Memories</button>
+          </div>
+          <div class="memory-list" id="memory-list"><div style="text-align: center; padding: 40px; color: var(--text-secondary);">No memories yet. Say "remember that..." in chat to create memories.</div></div>
+        </div>
+      </div>
+      <div id="settings-view" class="view">
+        <div class="settings-container">
+          <h2 class="section-title">⚙️ Settings</h2>
+          <div class="settings-group">
+            <h3>AI Configuration</h3>
+            <div class="setting-item"><div><div class="setting-label">Response Style</div><div class="setting-desc">How BONIPHACE responds to you</div></div><div class="setting-control"><select id="setting-style" onchange="saveSettings()"><option value="professional">Professional</option><option value="friendly">Friendly</option><option value="concise">Concise</option></select></div></div>
+            <div class="setting-item"><div><div class="setting-label">Language</div><div class="setting-desc">Preferred language</div></div><div class="setting-control"><select id="setting-language" onchange="saveSettings()"><option value="en">English</option><option value="sw">Kiswahili</option><option value="auto">Auto-detect</option></select></div></div>
+          </div>
+          <div class="settings-group">
+            <h3>Voice & Audio</h3>
+            <div class="setting-item"><div><div class="setting-label">Voice Input</div><div class="setting-desc">Enable voice messages</div></div><div class="setting-control"><div class="toggle-switch" id="toggle-voice" onclick="toggleSetting('voice')"></div></div></div>
+            <div class="setting-item"><div><div class="setting-label">Text-to-Speech</div><div class="setting-desc">Read responses aloud</div></div><div class="setting-control"><div class="toggle-switch" id="toggle-tts" onclick="toggleSetting('tts')"></div></div></div>
+          </div>
+          <div class="settings-group">
+            <h3>Account</h3>
+            <div class="setting-item"><div><div class="setting-label">Logged in as</div><div class="setting-desc">admin@boniphace.local</div></div></div>
+          </div>
+          <button class="btn btn-primary" onclick="saveSettings()" style="width: 100%;">Save Settings</button>
+        </div>
+      </div>
+    </div>
+  </div><script>
     let token = localStorage.getItem('bp_token');
     let currentDepth = 'simple';
     let memories = [];
     let conversations = [];
+    let messageHistory = [];
+    
+    window.addEventListener('load', () => {
+      console.log('Puter.js loaded:', typeof puter !== 'undefined');
+      if (typeof puter === 'undefined') {
+        console.error('Puter.js failed to load!');
+        addMessage('assistant', '⚠️ AI service is not available. Please refresh the page.');
+      }
+    });
     
     async function boot() {
       if (!token) {
@@ -276,6 +326,7 @@
     }
     
     function newChat() {
+      messageHistory = [];
       document.getElementById('messages-container').innerHTML = '';
       document.getElementById('messages-container').classList.add('hidden');
       document.getElementById('welcome-screen').classList.remove('hidden');
@@ -295,6 +346,7 @@
     }
     
     function formatMessage(text) {
+      if (!text) return '';
       text = text.replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>');
       text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
       text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
@@ -311,22 +363,59 @@
       const input = document.getElementById('message-input');
       const text = input.value.trim();
       if (!text) return;
+      
       addMessage('user', text);
+      messageHistory.push({ role: 'user', content: text });
       input.value = '';
       input.style.height = 'auto';
+      
       const sendBtn = document.getElementById('send-btn');
       sendBtn.disabled = true;
+      
       const typingDiv = document.createElement('div');
       typingDiv.className = 'message assistant';
       typingDiv.innerHTML = `<div class="message-header"><div class="message-avatar">B</div><div class="message-role">BONIPHACE</div></div><div class="typing-indicator"><span></span><span></span><span></span></div>`;
       document.getElementById('messages-container').appendChild(typingDiv);
       document.getElementById('chat-area').scrollTop = document.getElementById('chat-area').scrollHeight;
+      
       try {
+        if (typeof puter === 'undefined') {
+          throw new Error('Puter.js not loaded. Please refresh the page.');
+        }
+        
         const systemPrompt = `You are BONIPHACE, a personal AI assistant. Be helpful, professional, and friendly. Communicate in English and Kiswahili. ${currentDepth === 'deep' ? 'Provide detailed technical explanations.' : 'Keep responses concise and simple.'}`;
-        const response = await puter.ai.chat([{ role: 'system', content: systemPrompt }, { role: 'user', content: text }]);
+        
+        const messages = [
+          { role: 'system', content: systemPrompt },
+          ...messageHistory
+        ];
+        
+        console.log('Sending to Puter AI:', messages);
+        
+        const response = await puter.ai.chat(messages);
+        console.log('Puter AI response:', response);
+        
         typingDiv.remove();
-        const reply = typeof response === 'string' ? response : (response.message?.content || response.text || 'Response received');
+        
+        let reply = '';
+        if (typeof response === 'string') {
+          reply = response;
+        } else if (response && response.message) {
+          reply = response.message.content || response.message.text || '';
+        } else if (response && response.text) {
+          reply = response.text;
+        } else {
+          console.error('Unexpected response format:', response);
+          reply = 'I received your message but could not generate a response. Please try again.';
+        }
+        
+        if (!reply) {
+          reply = 'I received your message but the response was empty. Please try again.';
+        }
+        
         addMessage('assistant', reply);
+        messageHistory.push({ role: 'assistant', content: reply });
+        
         if (reply.includes('```memory')) {
           const memoryMatch = reply.match(/```memory\s*\n([\s\S]*?)\n```/);
           if (memoryMatch) {
@@ -341,8 +430,12 @@
         }
       } catch (err) {
         typingDiv.remove();
-        addMessage('assistant', 'Error: ' + err.message);
-      } finally { sendBtn.disabled = false; }
+        console.error('AI Error:', err);
+        const errorMsg = err.message || 'Unknown error occurred';
+        addMessage('assistant', `⚠️ Error: ${errorMsg}\n\nPlease try again or refresh the page.`);
+      } finally {
+        sendBtn.disabled = false;
+      }
     }
     
     function handleKeyDown(e) {
