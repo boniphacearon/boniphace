@@ -98,18 +98,6 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); }
   color: var(--accent);
 }
 .tagline { color: var(--text-dim); margin-bottom: 20px; }
-.auth-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
-.tab {
-  flex: 1;
-  padding: 8px;
-  border-radius: 8px;
-  color: var(--text-dim);
-  border: 1px solid var(--border);
-}
-.tab.active { color: var(--accent); border-color: var(--accent); }
-.auth-form { display: none; flex-direction: column; gap: 10px; }
-.auth-form.active { display: flex; }
-.auth-error { color: var(--danger); font-size: 13px; min-height: 18px; }
 
 /* APP LAYOUT */
 #app-screen { display: none; height: 100vh; }
@@ -190,7 +178,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); }
   animation: fadeIn .2s ease;
 }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
-.message.user { background: var(--bg-elev-2); border-color: var(--accent); border-color: #2a3a33; }
+.message.user { background: var(--bg-elev-2); border-color: #2a3a33; }
 .message .role { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); margin-bottom: 6px; font-weight: 600; }
 .message.user .role { color: var(--text-dim); }
 .message .content { white-space: pre-wrap; word-wrap: break-word; }
@@ -336,7 +324,6 @@ input:focus, textarea:focus, select:focus { border-color: var(--accent); }
   .composer { padding: 8px; }
 }
 
-/* iOS standalone padding */
 @supports (padding: max(0px)) {
   body {
     padding-left: env(safe-area-inset-left);
