@@ -1,4 +1,4 @@
-import { api } from './api.js';
+// Auth module
 
 export const Auth = {
   async me(token) {
@@ -40,12 +40,11 @@ export const Auth = {
   }
 };
 
-// Function to attach event listeners
-function initAuth() {
+// Setup function to connect buttons
+function setupAuth() {
   // Tab switching
   document.querySelectorAll('.auth-tabs .tab').forEach(tab => {
-    tab.addEventListener('click', (e) => {
-      e.preventDefault();
+    tab.addEventListener('click', () => {
       document.querySelectorAll('.auth-tabs .tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
       tab.classList.add('active');
@@ -61,7 +60,7 @@ function initAuth() {
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const errEl = document.getElementById('login-error');
-      if (errEl) errEl.textContent = 'Logging in...';
+      if (errEl) errEl.textContent = '';
       
       const email = document.getElementById('login-email').value;
       const password = document.getElementById('login-password').value;
@@ -81,7 +80,7 @@ function initAuth() {
     signupForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const errEl = document.getElementById('signup-error');
-      if (errEl) errEl.textContent = 'Creating account...';
+      if (errEl) errEl.textContent = '';
       
       const email = document.getElementById('signup-email').value;
       const username = document.getElementById('signup-username').value;
@@ -98,9 +97,9 @@ function initAuth() {
   }
 }
 
-// Run immediately if DOM is ready, otherwise wait for it
+// Run setup immediately since the DOM is already ready
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initAuth);
+  document.addEventListener('DOMContentLoaded', setupAuth);
 } else {
-  initAuth();
+  setupAuth();
 }
