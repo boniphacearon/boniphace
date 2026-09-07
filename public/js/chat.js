@@ -1,4 +1,4 @@
-import { api } from './app.js';
+import { api } from './api.js';
 
 export const Chat = {
   conversations: [],
@@ -22,7 +22,7 @@ export const Chat = {
       const item = document.createElement('div');
       item.className = 'list-item' + (c.id === window.BP.currentConversationId ? ' active' : '');
       item.innerHTML = `
-        <span style="cursor:pointer;flex:1;">${escapeHtml(c.title || 'Chat')}</span>
+        <span style="cursor:pointer;flex:1;">${this.escapeHtml(c.title || 'Chat')}</span>
         <button class="icon-btn delete-conv" data-id="${c.id}" style="width:24px;height:24px;font-size:12px;">✕</button>
       `;
       
@@ -79,17 +79,16 @@ export const Chat = {
     const div = document.createElement('div');
     div.className = `message ${m.role}`;
     
-    const files = safeJson(m.files, []);
-    const sources = safeJson(m.sources, []);
+    const files = this.safeJson(m.files, []);
+    const sources = this.safeJson(m.sources, []);
     
     div.innerHTML = `
       <div class="role">${m.role === 'user' ? 'You' : 'BONIPHACE'}</div>
-      <div class="content">${renderMarkdown(m.content || '')}</div>
-      ${files.length ? `<div class="files">${files.map(f => `<span class="file-chip">📎 ${escapeHtml(f.name || f)}</span>`).join('')}</div>` : ''}
-      ${sources && sources.length ? `<div class="sources"><strong>Sources:</strong><br>${sources.map(s => `<a href="${escapeAttr(s.url)}" target="_blank" rel="noopener">${escapeHtml(s.title)}</a>`).join(' · ')}</div>` : ''}
+      <div class="content">${this.renderMarkdown(m.content || '')}</div>
+      ${files.length ? `<div class="files">${files.map(f => `<span class="file-chip">📎 ${this.escapeHtml(f.name || f)}</span>`).join('')}</div>` : ''}
+      ${sources && sources.length ? `<div class="sources"><strong>Sources:</strong><br>${sources.map(s => `<a href="${this.escapeAttr(s.url)}" target="_blank" rel="noopener">${this.escapeHtml(s.title)}</a>`).join(' · ')}</div>` : ''}
     `;
     
-    // Add copy buttons to code blocks
     div.querySelectorAll('pre').forEach(pre => {
       const btn = document.createElement('button');
       btn.className = 'copy-btn';
@@ -115,7 +114,6 @@ export const Chat = {
       await this.newConversation();
     }
 
-    // Save user message
     try {
       await api(`/api/conversations/${window.BP.currentConversationId}/messages`, {
         method: 'POST',
@@ -133,17 +131,15 @@ export const Chat = {
     
     this.renderMessage({ role: 'user', content: text, files });
 
-    // Clear input
     const input = document.getElementById('message-input');
     if (input) {
       input.value = '';
-      autoResize(input);
+      input.style.height = 'auto';
     }
     window.BP.attachedFiles = [];
     const attachedEl = document.getElementById('attached-files');
     if (attachedEl) attachedEl.innerHTML = '';
 
-    // Show typing indicator
     const typingDiv = document.createElement('div');
     typingDiv.className = 'message assistant';
     typingDiv.innerHTML = `
@@ -182,7 +178,7 @@ export const Chat = {
       errDiv.innerHTML = `
         <div class="role">BONIPHACE</div>
         <div class="content" style="color:var(--danger)">
-          Error: ${escapeHtml(err.message)}<br>
+          Error: ${this.escapeHtml(err.message)}<br>
           <button class="text-btn" onclick="window.retryLastMessage()">↻ Retry</button>
         </div>
       `;
@@ -191,19 +187,16 @@ export const Chat = {
   },
 
   async callAI(userText, files) {
-    // Get conversation history
     const hist = await api(`/api/conversations/${window.BP.currentConversationId}/messages`);
     
-    // Build messages array
     const messages = [
-      { role: 'system', content: buildSystemPrompt() },
+      { role: 'system', content: this.buildSystemPrompt() },
       ...(hist.messages || []).map(m => ({ 
         role: m.role === 'tool' ? 'assistant' : m.role, 
         content: m.content || '' 
       }))
     ];
 
-    // Add memory context
     if (window.BP.settings?.memory_enabled !== 0) {
       try {
         const mem = await api('/api/memories');
@@ -215,7 +208,6 @@ export const Chat = {
       }
     }
 
-    // Add file contents
     const fileContext = [];
     for (const f of files) {
       if (f.text) {
@@ -229,12 +221,10 @@ export const Chat = {
     
     messages.push({ role: 'user', content: userText });
 
-    // Call Puter.js AI (free, no API key)
     try {
       const response = await puter.ai.chat(messages, { model: 'gpt-4o-mini' });
       let content = typeof response === 'string' ? response : (response.message?.content || response.text || '');
 
-      // Parse memory commands
       const memoryMatch = content.match(/```memory\s*\n([\s\S]*?)\n```/);
       if (memoryMatch) {
         try {
@@ -258,19 +248,13 @@ export const Chat = {
         }
       }
 
-      // Parse sources
       let sources = [];
       const srcMatch = content.match(/```sources\s*\n([\s\S]*?)\n```/);
       if (srcMatch) {
-        try { 
-          sources = JSON.parse(srcMatch[1]); 
-        } catch (e) {
-          console.error('Sources parse error:', e);
-        }
+        try { sources = JSON.parse(srcMatch[1]); } catch (e) {}
         content = content.replace(srcMatch[0], '').trim();
       }
 
-      // Parse tool calls
       let toolCalls = [];
       const toolMatch = content.match(/```tool\s*\n([\s\S]*?)\n```/);
       if (toolMatch) {
@@ -278,15 +262,10 @@ export const Chat = {
           const call = JSON.parse(toolMatch[1]);
           content = content.replace(toolMatch[0], '').trim();
           
-          // Execute tool
           try {
-            const result = await api('/api/tools/execute', { 
-              method: 'POST', 
-              body: call 
-            });
+            const result = await api('/api/tools/execute', { method: 'POST', body: call });
             toolCalls.push({ ...call, result: result.result });
             
-            // Feed result back to AI
             messages.push({ role: 'assistant', content });
             messages.push({ 
               role: 'user', 
@@ -308,176 +287,52 @@ export const Chat = {
       console.error('Puter AI error:', err);
       throw new Error('AI service unavailable. Please try again.');
     }
-  }
-};
+  },
 
-// UI Wiring
-const input = document.getElementById('message-input');
-const sendBtn = document.getElementById('send-btn');
+  escapeHtml(s) {
+    return String(s || '').replace(/[&<>"']/g, c => 
+      ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])
+    );
+  },
 
-if (input) {
-  input.addEventListener('input', () => autoResize(input));
-  input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      send();
-    }
-  });
-}
+  escapeAttr(s) {
+    return this.escapeHtml(s);
+  },
 
-if (sendBtn) {
-  sendBtn.addEventListener('click', send);
-}
+  safeJson(s, def) {
+    if (!s) return def;
+    if (typeof s === 'object') return s;
+    try { return JSON.parse(s); } catch { return def; }
+  },
 
-async function send() {
-  const input = document.getElementById('message-input');
-  const sendBtn = document.getElementById('send-btn');
-  
-  if (!input || !sendBtn) return;
-  
-  const text = input.value;
-  const files = [...(window.BP.attachedFiles || [])];
-  
-  sendBtn.disabled = true;
-  try {
-    await Chat.send(text, files);
-  } finally {
-    sendBtn.disabled = false;
-  }
-}
+  renderMarkdown(text) {
+    if (!text) return '';
+    let html = this.escapeHtml(text);
+    html = html.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) =>
+      `<pre><code class="lang-${lang}">${code}</code></pre>`);
+    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+    html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+    html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+    html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+    html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, 
+      '<a href="$2" target="_blank" rel="noopener">$1</a>');
+    html = html.replace(/^- (.+)$/gm, '<li>$1</li>');
+    html = html.replace(/(<li>.*<\/li>\n?)+/g, m => `<ul>${m}</ul>`);
+    html = html.split(/\n\n+/).map(p => {
+      if (/^<(h\d|ul|ol|pre|table)/.test(p.trim())) return p;
+      return `<p>${p.replace(/\n/g, '<br>')}</p>`;
+    }).join('');
+    return html;
+  },
 
-window.retryLastMessage = async function() {
-  const msgs = document.querySelectorAll('#messages .message.user');
-  const last = msgs[msgs.length - 1];
-  if (last) {
-    const content = last.querySelector('.content').textContent.replace(' Retry', '').trim();
-    await Chat.send(content, []);
-  }
-};
-
-// File uploads
-const fileInput = document.getElementById('file-input');
-if (fileInput) {
-  fileInput.addEventListener('change', async (e) => {
-    for (const file of e.target.files) {
-      const fd = new FormData();
-      fd.append('file', file);
-      try {
-        const uploaded = await api('/api/files/upload', { 
-          method: 'POST', 
-          body: fd 
-        });
-        const text = await readTextPreview(file);
-        window.BP.attachedFiles.push({ ...uploaded, text });
-        renderAttached();
-      } catch (err) {
-        console.error('Upload error:', err);
-        alert('Failed to upload file: ' + err.message);
-      }
-    }
-    e.target.value = '';
-  });
-}
-
-function renderAttached() {
-  const el = document.getElementById('attached-files');
-  if (!el) return;
-  
-  el.innerHTML = (window.BP.attachedFiles || []).map((f, i) =>
-    `<span class="file-chip">📎 ${escapeHtml(f.name)} 
-      <button onclick="window.detachFile(${i})" style="background:none;color:var(--danger);margin-left:4px;border:none;cursor:pointer;">✕</button>
-    </span>`
-  ).join('');
-}
-
-window.detachFile = (i) => {
-  window.BP.attachedFiles.splice(i, 1);
-  renderAttached();
-};
-
-async function readTextPreview(file) {
-  const textTypes = ['text/', 'application/json', 'application/javascript', 'application/xml'];
-  const textExts = ['.txt','.md','.csv','.json','.js','.ts','.py','.java','.c','.cpp','.h','.php','.html','.css','.sql','.xml','.yml','.yaml','.sh','.rb','.go','.rs'];
-  const isText = textTypes.some(t => file.type.startsWith(t)) || 
-                 textExts.some(ext => file.name.toLowerCase().endsWith(ext));
-  
-  if (isText) {
-    try {
-      return await file.text();
-    } catch {
-      return null;
-    }
-  }
-  return null;
-}
-
-// Helpers
-function autoResize(el) {
-  if (!el) return;
-  el.style.height = 'auto';
-  el.style.height = Math.min(el.scrollHeight, 200) + 'px';
-}
-
-function escapeHtml(s) {
-  return String(s || '').replace(/[&<>"']/g, c => 
-    ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])
-  );
-}
-
-function escapeAttr(s) {
-  return escapeHtml(s);
-}
-
-function safeJson(s, def) {
-  if (!s) return def;
-  if (typeof s === 'object') return s;
-  try { return JSON.parse(s); } 
-  catch { return def; }
-}
-
-function renderMarkdown(text) {
-  if (!text) return '';
-  let html = escapeHtml(text);
-  
-  // Code blocks
-  html = html.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) =>
-    `<pre><code class="lang-${lang}">${code}</code></pre>`);
-  
-  // Inline code
-  html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-  
-  // Headers
-  html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
-  html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
-  html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
-  
-  // Bold / italic
-  html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-  html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-  
-  // Links
-  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, 
-    '<a href="$2" target="_blank" rel="noopener">$1</a>');
-  
-  // Lists
-  html = html.replace(/^- (.+)$/gm, '<li>$1</li>');
-  html = html.replace(/(<li>.*<\/li>\n?)+/g, m => `<ul>${m}</ul>`);
-  
-  // Paragraphs
-  html = html.split(/\n\n+/).map(p => {
-    if (/^<(h\d|ul|ol|pre|table)/.test(p.trim())) return p;
-    return `<p>${p.replace(/\n/g, '<br>')}</p>`;
-  }).join('');
-  
-  return html;
-}
-
-function buildSystemPrompt() {
-  const depth = window.BP?.settings?.answer_depth === 'deep'
-    ? '\n\nMODE: DEEP — Provide technical detail, underlying mechanisms, real implementation notes, edge cases.'
-    : '\n\nMODE: SIMPLE — Be concise, plain-language, minimal jargon.';
-  
-  return `You are BONIPHACE, a personal AI assistant. Be intelligent, helpful, professional, friendly, clear, honest, and patient.
+  buildSystemPrompt() {
+    const depth = window.BP?.settings?.answer_depth === 'deep'
+      ? '\n\nMODE: DEEP — Provide technical detail, underlying mechanisms, real implementation notes, edge cases.'
+      : '\n\nMODE: SIMPLE — Be concise, plain-language, minimal jargon.';
+    
+    return `You are BONIPHACE, a personal AI assistant. Be intelligent, helpful, professional, friendly, clear, honest, and patient.
 
 Core traits:
 - Communicate in English and Kiswahili, switching naturally when the user does.
@@ -497,11 +352,107 @@ When you use verifiable sources, include a SOURCES section at the end:
 \`\`\`sources
 [{"title":"...","url":"..."}]
 \`\`\`
-Only include real, authoritative sources (official docs, IEEE, IETF, W3C, vendor sites). If no source exists, say so.
+Only include real, authoritative sources. If no source exists, say so.
 
 When a tool should be used (web search, calculator, weather), respond with:
 \`\`\`tool
 {"name":"<tool_name>","args":{...}}
 \`\`\`
 Available tools: web_search, calculator, weather.${depth}`;
+  }
+};
+
+// UI Wiring
+document.addEventListener('DOMContentLoaded', () => {
+  const input = document.getElementById('message-input');
+  const sendBtn = document.getElementById('send-btn');
+
+  if (input) {
+    input.addEventListener('input', () => {
+      input.style.height = 'auto';
+      input.style.height = Math.min(input.scrollHeight, 200) + 'px';
+    });
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        send();
+      }
+    });
+  }
+
+  if (sendBtn) {
+    sendBtn.addEventListener('click', send);
+  }
+
+  const fileInput = document.getElementById('file-input');
+  if (fileInput) {
+    fileInput.addEventListener('change', async (e) => {
+      for (const file of e.target.files) {
+        const fd = new FormData();
+        fd.append('file', file);
+        try {
+          const uploaded = await api('/api/files/upload', { method: 'POST', body: fd });
+          const text = await readTextPreview(file);
+          window.BP.attachedFiles.push({ ...uploaded, text });
+          renderAttached();
+        } catch (err) {
+          console.error('Upload error:', err);
+          alert('Failed to upload file: ' + err.message);
+        }
+      }
+      e.target.value = '';
+    });
+  }
+});
+
+function send() {
+  const input = document.getElementById('message-input');
+  const sendBtn = document.getElementById('send-btn');
+  
+  if (!input || !sendBtn) return;
+  
+  const text = input.value;
+  const files = [...(window.BP.attachedFiles || [])];
+  
+  sendBtn.disabled = true;
+  Chat.send(text, files).finally(() => {
+    sendBtn.disabled = false;
+  });
+}
+
+window.retryLastMessage = async function() {
+  const msgs = document.querySelectorAll('#messages .message.user');
+  const last = msgs[msgs.length - 1];
+  if (last) {
+    const content = last.querySelector('.content').textContent.replace(' Retry', '').trim();
+    await Chat.send(content, []);
+  }
+};
+
+function renderAttached() {
+  const el = document.getElementById('attached-files');
+  if (!el) return;
+  
+  el.innerHTML = (window.BP.attachedFiles || []).map((f, i) =>
+    `<span class="file-chip">📎 ${Chat.escapeHtml(f.name)} 
+      <button onclick="window.detachFile(${i})" style="background:none;color:var(--danger);margin-left:4px;border:none;cursor:pointer;"></button>
+    </span>`
+  ).join('');
+}
+
+window.detachFile = (i) => {
+  window.BP.attachedFiles.splice(i, 1);
+  renderAttached();
+};
+
+async function readTextPreview(file) {
+  const textTypes = ['text/', 'application/json', 'application/javascript', 'application/xml'];
+  const textExts = ['.txt','.md','.csv','.json','.js','.ts','.py','.java','.c','.cpp','.h','.php','.html','.css','.sql','.xml','.yml','.yaml','.sh','.rb','.go','.rs'];
+  const isText = textTypes.some(t => file.type.startsWith(t)) || 
+                 textExts.some(ext => file.name.toLowerCase().endsWith(ext));
+  
+  if (isText) {
+    try { return await file.text(); } catch { return null; }
+  }
+  return null;
 }
