@@ -3,360 +3,281 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#0a0a0a" />
-  <title>BONIPHACE - Your Personal AI Assistant</title>
-  
+  <title>BONIPHACE - AI Assistant</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    :root {
-      --bg-primary: #0a0a0a; --bg-secondary: #141414; --bg-tertiary: #1c1c1c;
-      --bg-hover: #262626; --border: #2a2a2a; --text-primary: #f5f5f5;
-      --text-secondary: #a3a3a3; --accent: #6EE7B7; --accent-hover: #34D399;
-      --accent-dim: rgba(110, 231, 183, 0.1); --danger: #ef4444;
-      --radius: 12px; --radius-sm: 8px; --shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-      --transition: all 0.2s ease;
+    body {
+      background: #0a0a0a;
+      color: #f5f5f5;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      height: 100vh;
+      overflow: hidden;
     }
-    body { background: var(--bg-primary); color: var(--text-primary); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; height: 100vh; overflow: hidden; }
     #app { display: flex; height: 100vh; }
-    #sidebar { width: 280px; background: var(--bg-secondary); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 20px 16px; }
-    .brand { display: flex; align-items: center; gap: 12px; font-size: 22px; font-weight: 700; color: var(--accent); margin-bottom: 32px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
-    .brand-icon { width: 40px; height: 40px; background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--bg-primary); font-weight: 900; font-size: 24px; box-shadow: 0 4px 12px rgba(110, 231, 183, 0.3); }
-    .nav-section { margin-bottom: 24px; }
-    .nav-label { font-size: 11px; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 1px; margin-bottom: 8px; padding-left: 12px; }
-    .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px; margin: 4px 0; border-radius: var(--radius-sm); cursor: pointer; background: none; border: none; color: var(--text-primary); text-align: left; font-size: 14px; transition: var(--transition); width: 100%; }
-    .nav-item:hover { background: var(--bg-hover); }
-    .nav-item.active { background: var(--accent-dim); color: var(--accent); border-left: 3px solid var(--accent); }
-    .nav-icon { font-size: 18px; }
-    .new-chat-btn { background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%); color: var(--bg-primary); border: none; padding: 12px; border-radius: var(--radius-sm); font-weight: 600; cursor: pointer; margin-bottom: 20px; transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 8px; }
-    .new-chat-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(110, 231, 183, 0.4); }
-    .sidebar-footer { margin-top: auto; padding-top: 16px; border-top: 1px solid var(--border); }
-    .user-info { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--bg-tertiary); border-radius: var(--radius-sm); }
-    .user-avatar { width: 36px; height: 36px; background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--bg-primary); }
-    .user-details { flex: 1; }
-    .user-name { font-size: 14px; font-weight: 600; }
-    .user-email { font-size: 12px; color: var(--text-secondary); }
-    #main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-    #header { padding: 20px 24px; border-bottom: 1px solid var(--border); background: var(--bg-secondary); display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-    .header-title { font-size: 20px; font-weight: 700; background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-    .header-actions { display: flex; gap: 12px; align-items: center; }
-    .depth-toggle { display: flex; background: var(--bg-tertiary); border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--border); }
-    .depth-btn { padding: 8px 16px; font-size: 13px; background: none; border: none; color: var(--text-secondary); cursor: pointer; transition: var(--transition); }
-    .depth-btn.active { background: var(--accent); color: var(--bg-primary); font-weight: 600; }
-    #chat-area { flex: 1; overflow-y: auto; padding: 24px; background: var(--bg-primary); }
-    .welcome-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; padding: 40px; }
-    .welcome-icon { width: 80px; height: 80px; background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%); border-radius: 24px; display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: 900; color: var(--bg-primary); margin-bottom: 24px; box-shadow: 0 8px 32px rgba(110, 231, 183, 0.3); }
-    .welcome-title { font-size: 32px; font-weight: 700; margin-bottom: 12px; background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-    .welcome-subtitle { font-size: 16px; color: var(--text-secondary); margin-bottom: 32px; }
-    .suggestion-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; max-width: 800px; width: 100%; }
-    .suggestion-card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; cursor: pointer; transition: var(--transition); text-align: left; }
-    .suggestion-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--shadow); }
-    .suggestion-icon { font-size: 24px; margin-bottom: 12px; }
-    .suggestion-title { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
-    .suggestion-desc { font-size: 13px; color: var(--text-secondary); }
-    .messages-container { max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
-    .message { padding: 20px; border-radius: var(--radius); background: var(--bg-secondary); border: 1px solid var(--border); animation: slideIn 0.3s ease; }
-    @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    .message.user { background: var(--bg-tertiary); border-left: 3px solid var(--accent); }
-    .message-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-    .message-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; }
-    .message.user .message-avatar { background: var(--accent); color: var(--bg-primary); }
-    .message.assistant .message-avatar { background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%); color: var(--bg-primary); }
-    .message-role { font-size: 13px; font-weight: 600; color: var(--accent); }
-    .message-time { font-size: 12px; color: var(--text-secondary); margin-left: auto; }
-    .message-content { font-size: 15px; line-height: 1.6; color: var(--text-primary); white-space: pre-wrap; word-wrap: break-word; }
-    .message-content p { margin: 8px 0; }
-    .message-content code { background: var(--bg-primary); padding: 2px 6px; border-radius: 4px; font-family: "SF Mono", Consolas, monospace; font-size: 13px; }
-    .message-content pre { background: var(--bg-primary); padding: 16px; border-radius: var(--radius-sm); overflow-x: auto; margin: 12px 0; border: 1px solid var(--border); }
-    .message-content pre code { background: none; padding: 0; }
-    .message-content h1, .message-content h2, .message-content h3 { margin: 16px 0 8px; }
-    .message-content ul, .message-content ol { margin: 8px 0 8px 24px; }
-    .message-content a { color: var(--accent); text-decoration: none; }
-    .message-content a:hover { text-decoration: underline; }
-    .typing-indicator { display: flex; gap: 4px; padding: 8px 0; }
-    .typing-indicator span { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: bounce 1.4s infinite ease-in-out; }
-    .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
-    .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
-    @keyframes bounce { 0%, 80%, 100% { transform: scale(0); opacity: 0.5; } 40% { transform: scale(1); opacity: 1; } }
-    #input-area { padding: 20px 24px; border-top: 1px solid var(--border); background: var(--bg-secondary); }
-    .input-container { max-width: 800px; margin: 0 auto; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; transition: var(--transition); }
-    .input-container:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
-    #message-input { width: 100%; padding: 12px; border: none; background: transparent; color: var(--text-primary); font-size: 15px; resize: none; outline: none; font-family: inherit; min-height: 24px; max-height: 200px; }
-    .input-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
-    .input-tools { display: flex; gap: 8px; }
-    .tool-btn { width: 36px; height: 36px; border-radius: var(--radius-sm); background: none; border: none; color: var(--text-secondary); cursor: pointer; transition: var(--transition); display: flex; align-items: center; justify-content: center; font-size: 18px; }
-    .tool-btn:hover { background: var(--bg-hover); color: var(--accent); }
-    .send-btn { background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%); color: var(--bg-primary); border: none; padding: 10px 24px; border-radius: var(--radius-sm); font-weight: 600; cursor: pointer; transition: var(--transition); display: flex; align-items: center; gap: 8px; }
-    .send-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(110, 231, 183, 0.4); }
-    .send-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-    .dashboard-container { padding: 24px; overflow-y: auto; flex: 1; }
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 32px; }
-    .stat-card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; transition: var(--transition); }
-    .stat-card:hover { border-color: var(--accent); transform: translateY(-2px); }
-    .stat-icon { font-size: 32px; margin-bottom: 12px; }
-    .stat-value { font-size: 28px; font-weight: 700; color: var(--accent); margin-bottom: 4px; }
-    .stat-label { font-size: 13px; color: var(--text-secondary); }
-    .section-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; color: var(--accent); }
-    .activity-list { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
-    .activity-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
-    .activity-item:last-child { border-bottom: none; }
-    .activity-icon { width: 40px; height: 40px; background: var(--accent-dim); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; }
-    .activity-content { flex: 1; }
-    .activity-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
-    .activity-time { font-size: 12px; color: var(--text-secondary); }
-    .memory-container { padding: 24px; overflow-y: auto; flex: 1; }
-    .memory-controls { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
-    .memory-toggle { display: flex; align-items: center; gap: 8px; background: var(--bg-secondary); padding: 12px 16px; border-radius: var(--radius-sm); border: 1px solid var(--border); }
-    .memory-toggle input { cursor: pointer; }
-    .btn { padding: 12px 20px; border-radius: var(--radius-sm); border: none; font-weight: 600; cursor: pointer; transition: var(--transition); font-size: 14px; }
-    .btn-primary { background: var(--accent); color: var(--bg-primary); }
-    .btn-primary:hover { background: var(--accent-hover); }
-    .btn-danger { background: var(--danger); color: white; }
-    .btn-danger:hover { opacity: 0.9; }
-    .memory-list { display: flex; flex-direction: column; gap: 12px; }
-    .memory-item { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
-    .memory-content { flex: 1; font-size: 14px; line-height: 1.5; }
-    .memory-category { font-size: 11px; padding: 4px 8px; background: var(--accent-dim); color: var(--accent); border-radius: 4px; margin-top: 8px; display: inline-block; }
-    .memory-delete { background: none; border: none; color: var(--danger); cursor: pointer; font-size: 18px; padding: 4px; }
-    .settings-container { padding: 24px; overflow-y: auto; flex: 1; }
-    .settings-group { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; }
-    .settings-group h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; color: var(--accent); }
-    .setting-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
-    .setting-item:last-child { border-bottom: none; }
-    .setting-label { font-size: 14px; }
-    .setting-desc { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
-    .setting-control select, .setting-control input { background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary); padding: 8px 12px; border-radius: var(--radius-sm); font-size: 14px; outline: none; }
-    .setting-control select:focus, .setting-control input:focus { border-color: var(--accent); }
-    .toggle-switch { position: relative; width: 48px; height: 24px; background: var(--bg-tertiary); border-radius: 12px; cursor: pointer; transition: var(--transition); }
-    .toggle-switch.active { background: var(--accent); }
-    .toggle-switch::after { content: ''; position: absolute; width: 20px; height: 20px; background: white; border-radius: 50%; top: 2px; left: 2px; transition: var(--transition); }
-    .toggle-switch.active::after { left: 26px; }
-    .view { display: none; height: 100%; flex-direction: column; }
-    .view.active { display: flex; }
-    @media (max-width: 768px) {
-      #sidebar { position: fixed; left: 0; top: 0; bottom: 0; z-index: 100; transform: translateX(-100%); }
-      #sidebar.open { transform: translateX(0); }
-      #chat-area { padding: 16px; }
-      .messages-container { gap: 16px; }
-      .message { padding: 16px; }
-      #input-area { padding: 16px; }
-      .suggestion-cards { grid-template-columns: 1fr; }
+    #sidebar {
+      width: 280px;
+      background: #141414;
+      border-right: 1px solid #2a2a2a;
+      padding: 20px;
     }
-    ::-webkit-scrollbar { width: 8px; }
-    ::-webkit-scrollbar-track { background: var(--bg-primary); }
-    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: var(--bg-hover); }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 22px;
+      font-weight: 700;
+      color: #6EE7B7;
+      margin-bottom: 32px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #2a2a2a;
+    }
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #6EE7B7 0%, #34D399 100%);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #0a0a0a;
+      font-weight: 900;
+      font-size: 24px;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      margin: 4px 0;
+      border-radius: 8px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      color: #f5f5f5;
+      text-align: left;
+      font-size: 14px;
+      width: 100%;
+    }
+    .nav-item:hover { background: #262626; }
+    .nav-item.active { background: rgba(110, 231, 183, 0.1); color: #6EE7B7; }
+    #main { flex: 1; display: flex; flex-direction: column; }
+    #header {
+      padding: 20px 24px;
+      border-bottom: 1px solid #2a2a2a;
+      background: #141414;
+    }
+    .header-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #6EE7B7;
+    }
+    #chat-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+    }
+    .welcome-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      text-align: center;
+    }
+    .welcome-icon {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #6EE7B7 0%, #34D399 100%);
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      font-weight: 900;
+      color: #0a0a0a;
+      margin-bottom: 24px;
+    }
+    .welcome-title {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: #6EE7B7;
+    }
+    .welcome-subtitle {
+      font-size: 16px;
+      color: #a3a3a3;
+      margin-bottom: 32px;
+    }
+    .messages-container {
+      max-width: 800px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .message {
+      padding: 20px;
+      border-radius: 12px;
+      background: #141414;
+      border: 1px solid #2a2a2a;
+    }
+    .message.user {
+      background: #1c1c1c;
+      border-left: 3px solid #6EE7B7;
+    }
+    .message-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .message-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+    }
+    .message.user .message-avatar { background: #6EE7B7; color: #0a0a0a; }
+    .message.assistant .message-avatar {
+      background: linear-gradient(135deg, #6EE7B7 0%, #34D399 100%);
+      color: #0a0a0a;
+    }
+    .message-role {
+      font-size: 13px;
+      font-weight: 600;
+      color: #6EE7B7;
+    }
+    .message-content {
+      font-size: 15px;
+      line-height: 1.6;
+      color: #f5f5f5;
+      white-space: pre-wrap;
+    }
+    #input-area {
+      padding: 20px 24px;
+      border-top: 1px solid #2a2a2a;
+      background: #141414;
+    }
+    .input-container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #1c1c1c;
+      border: 1px solid #2a2a2a;
+      border-radius: 12px;
+      padding: 16px;
+    }
+    #message-input {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      background: transparent;
+      color: #f5f5f5;
+      font-size: 15px;
+      resize: none;
+      outline: none;
+      font-family: inherit;
+      min-height: 24px;
+    }
+    .send-btn {
+      background: linear-gradient(135deg, #6EE7B7 0%, #34D399 100%);
+      color: #0a0a0a;
+      border: none;
+      padding: 10px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 12px;
+      width: 100%;
+    }
+    .send-btn:hover { opacity: 0.9; }
     .hidden { display: none !important; }
-    .error-message { color: var(--danger); padding: 12px; background: rgba(239, 68, 68, 0.1); border-radius: var(--radius-sm); margin: 12px 0; }
+    .view { display: none; height: 100%; }
+    .view.active { display: flex; flex-direction: column; }
   </style>
-  <script src="https://js.puter.com/v2/"></script>
 </head>
 <body>
   <div id="app">
     <div id="sidebar">
-      <div class="brand"><div class="brand-icon">B</div>BONIPHACE</div>
-      <button class="new-chat-btn" onclick="newChat()"><span>✨</span> New Chat</button>
-      <div class="nav-section">
-        <div class="nav-label">Main</div>
-        <button class="nav-item active" onclick="showView('chat', this)"><span class="nav-icon"></span> Chat</button>
-        <button class="nav-item" onclick="showView('dashboard', this)"><span class="nav-icon">📊</span> Dashboard</button>
-        <button class="nav-item" onclick="showView('memory', this)"><span class="nav-icon">🧠</span> Memory</button>
-        <button class="nav-item" onclick="showView('settings', this)"><span class="nav-icon">⚙️</span> Settings</button>
+      <div class="brand">
+        <div class="brand-icon">B</div>
+        BONIPHACE
       </div>
-      <div class="sidebar-footer">
-        <div class="user-info">
-          <div class="user-avatar">A</div>
-          <div class="user-details"><div class="user-name">Admin</div><div class="user-email">admin@boniphace.local</div></div>
-        </div>
-      </div>
+      <button class="nav-item active" onclick="showView('chat')">💬 Chat</button>
+      <button class="nav-item" onclick="showView('dashboard')">📊 Dashboard</button>
+      <button class="nav-item" onclick="showView('memory')">🧠 Memory</button>
+      <button class="nav-item" onclick="showView('settings')">️ Settings</button>
     </div>
     <div id="main">
       <div id="header">
-        <div class="header-title" id="page-title">BONIPHACE — Your Personal AI Assistant</div>
-        <div class="header-actions">
-          <div class="depth-toggle">
-            <button class="depth-btn active" onclick="setDepth('simple', this)">Simple</button>
-            <button class="depth-btn" onclick="setDepth('deep', this)">Deep</button>
-          </div>
-        </div>
+        <div class="header-title">BONIPHACE — Your Personal AI Assistant</div>
       </div>
-<div id="chat-view" class="view active">
+      
+      <div id="chat-view" class="view active">
         <div id="chat-area">
           <div class="welcome-screen" id="welcome-screen">
             <div class="welcome-icon">B</div>
             <div class="welcome-title">Welcome to BONIPHACE!</div>
-            <div class="welcome-subtitle">Your Personal AI Assistant - How can I help you today?</div>
-            <div class="suggestion-cards">
-              <div class="suggestion-card" onclick="useSuggestion('Explain quantum computing in simple terms')"><div class="suggestion-icon">⚛️</div><div class="suggestion-title">Explain quantum computing</div><div class="suggestion-desc">in simple terms</div></div>
-              <div class="suggestion-card" onclick="useSuggestion('Write a Python function to sort a list')"><div class="suggestion-icon">💻</div><div class="suggestion-title">Write code</div><div class="suggestion-desc">Python sorting function</div></div>
-              <div class="suggestion-card" onclick="useSuggestion('What are the best practices for cybersecurity?')"><div class="suggestion-icon">🔒</div><div class="suggestion-title">Cybersecurity tips</div><div class="suggestion-desc">best practices</div></div>
-              <div class="suggestion-card" onclick="useSuggestion('Help me plan my study schedule for computer science')"><div class="suggestion-icon">📚</div><div class="suggestion-title">Study planning</div><div class="suggestion-desc">computer science schedule</div></div>
-            </div>
+            <div class="welcome-subtitle">How can I help you today?</div>
           </div>
           <div class="messages-container hidden" id="messages-container"></div>
         </div>
         <div id="input-area">
           <div class="input-container">
-            <textarea id="message-input" rows="1" placeholder="Ask BONIPHACE anything..." onkeydown="handleKeyDown(event)"></textarea>
-            <div class="input-actions">
-              <div class="input-tools">
-                <button class="tool-btn" title="Upload file" onclick="document.getElementById('file-input').click()">📎</button>
-                <button class="tool-btn" title="Voice input" onclick="startVoice()">🎤</button>
-                <input type="file" id="file-input" style="display:none" onchange="handleFileUpload(event)">
-              </div>
-              <button class="send-btn" onclick="sendMessage()" id="send-btn"><span>Send</span><span>→</span></button>
-            </div>
+            <textarea id="message-input" rows="1" placeholder="Ask BONIPHACE anything..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage();}"></textarea>
+            <button class="send-btn" onclick="sendMessage()">Send Message</button>
           </div>
         </div>
       </div>
+      
       <div id="dashboard-view" class="view">
-        <div class="dashboard-container">
-          <div class="stats-grid">
-            <div class="stat-card"><div class="stat-icon">💬</div><div class="stat-value" id="stat-conversations">0</div><div class="stat-label">Conversations</div></div>
-            <div class="stat-card"><div class="stat-icon">🧠</div><div class="stat-value" id="stat-memories">0</div><div class="stat-label">Memories</div></div>
-            <div class="stat-card"><div class="stat-icon">📁</div><div class="stat-value" id="stat-projects">0</div><div class="stat-label">Projects</div></div>
-            <div class="stat-card"><div class="stat-icon">📄</div><div class="stat-value" id="stat-files">0</div><div class="stat-label">Files</div></div>
-          </div>
-          <h2 class="section-title">Recent Activity</h2>
-          <div class="activity-list" id="activity-list">
-            <div class="activity-item"><div class="activity-icon">🚀</div><div class="activity-content"><div class="activity-title">Welcome to BONIPHACE!</div><div class="activity-time">Just now</div></div></div>
-          </div>
-        </div>
+        <div style="padding:24px;"><h2>Dashboard</h2><p style="color:#a3a3a3;margin-top:12px;">Statistics will appear here.</p></div>
       </div>
+      
       <div id="memory-view" class="view">
-        <div class="memory-container">
-          <h2 class="section-title">🧠 Memory</h2>
-          <p style="color: var(--text-secondary); margin-bottom: 20px;">BONIPHACE remembers important information across conversations.</p>
-          <div class="memory-controls">
-            <label class="memory-toggle"><input type="checkbox" id="memory-enabled" checked onchange="toggleMemory()"><span>Enable Memory</span></label>
-            <button class="btn btn-danger" onclick="clearAllMemories()">Clear All Memories</button>
-          </div>
-          <div class="memory-list" id="memory-list"><div style="text-align: center; padding: 40px; color: var(--text-secondary);">No memories yet. Say "remember that..." in chat to create memories.</div></div>
-        </div>
+        <div style="padding:24px;"><h2>Memory</h2><p style="color:#a3a3a3;margin-top:12px;">Your memories will appear here.</p></div>
       </div>
+      
       <div id="settings-view" class="view">
-        <div class="settings-container">
-          <h2 class="section-title">⚙️ Settings</h2>
-          <div class="settings-group">
-            <h3>AI Configuration</h3>
-            <div class="setting-item"><div><div class="setting-label">Response Style</div><div class="setting-desc">How BONIPHACE responds to you</div></div><div class="setting-control"><select id="setting-style" onchange="saveSettings()"><option value="professional">Professional</option><option value="friendly">Friendly</option><option value="concise">Concise</option></select></div></div>
-            <div class="setting-item"><div><div class="setting-label">Language</div><div class="setting-desc">Preferred language</div></div><div class="setting-control"><select id="setting-language" onchange="saveSettings()"><option value="en">English</option><option value="sw">Kiswahili</option><option value="auto">Auto-detect</option></select></div></div>
-          </div>
-          <div class="settings-group">
-            <h3>Voice & Audio</h3>
-            <div class="setting-item"><div><div class="setting-label">Voice Input</div><div class="setting-desc">Enable voice messages</div></div><div class="setting-control"><div class="toggle-switch" id="toggle-voice" onclick="toggleSetting('voice')"></div></div></div>
-            <div class="setting-item"><div><div class="setting-label">Text-to-Speech</div><div class="setting-desc">Read responses aloud</div></div><div class="setting-control"><div class="toggle-switch" id="toggle-tts" onclick="toggleSetting('tts')"></div></div></div>
-          </div>
-          <div class="settings-group">
-            <h3>Account</h3>
-            <div class="setting-item"><div><div class="setting-label">Logged in as</div><div class="setting-desc">admin@boniphace.local</div></div></div>
-          </div>
-          <button class="btn btn-primary" onclick="saveSettings()" style="width: 100%;">Save Settings</button>
-        </div>
+        <div style="padding:24px;"><h2>Settings</h2><p style="color:#a3a3a3;margin-top:12px;">Settings will appear here.</p></div>
       </div>
     </div>
-  </div><script>
-    let token = localStorage.getItem('bp_token');
-    let currentDepth = 'simple';
-    let memories = [];
-    let conversations = [];
+  </div>
+
+  <script>
     let messageHistory = [];
     
-    window.addEventListener('load', () => {
-      console.log('Puter.js loaded:', typeof puter !== 'undefined');
-      if (typeof puter === 'undefined') {
-        console.error('Puter.js failed to load!');
-        addMessage('assistant', '⚠️ AI service is not available. Please refresh the page.');
-      }
-    });
-    
-    async function boot() {
-      if (!token) {
-        try {
-          const res = await fetch('/api/auth/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: 'admin', password: 'admin123' })
-          });
-          const data = await res.json();
-          if (res.ok) {
-            token = data.token;
-            localStorage.setItem('bp_token', token);
-          }
-        } catch(e) { console.error('Auto-login failed:', e); }
-      }
-      if (token) { await loadData(); }
-    }
-    
-    async function loadData() {
-      try {
-        const memRes = await fetch('/api/memories', { headers: { 'Authorization': 'Bearer ' + token } });
-        if (memRes.ok) {
-          const memData = await memRes.json();
-          memories = memData.memories || [];
-          renderMemories();
-          document.getElementById('stat-memories').textContent = memories.length;
-        }
-        const convRes = await fetch('/api/conversations', { headers: { 'Authorization': 'Bearer ' + token } });
-        if (convRes.ok) {
-          const convData = await convRes.json();
-          conversations = convData.conversations || [];
-          document.getElementById('stat-conversations').textContent = conversations.length;
-        }
-      } catch(e) { console.error('Load data failed:', e); }
-    }
-    
-    function showView(view, btn) {
+    function showView(view) {
       document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
       document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
       document.getElementById(view + '-view').classList.add('active');
-      if (btn) btn.classList.add('active');
-      const titles = { chat: 'BONIPHACE — Your Personal AI Assistant', dashboard: 'Dashboard', memory: 'Memory', settings: 'Settings' };
-      document.getElementById('page-title').textContent = titles[view];
-    }
-    
-    function setDepth(depth, btn) {
-      currentDepth = depth;
-      document.querySelectorAll('.depth-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-    }
-    
-    function useSuggestion(text) {
-      document.getElementById('message-input').value = text;
-      sendMessage();
-    }
-    
-    function newChat() {
-      messageHistory = [];
-      document.getElementById('messages-container').innerHTML = '';
-      document.getElementById('messages-container').classList.add('hidden');
-      document.getElementById('welcome-screen').classList.remove('hidden');
-      showView('chat', document.querySelector('.nav-item'));
+      event.target.classList.add('active');
     }
     
     function addMessage(role, content) {
       document.getElementById('welcome-screen').classList.add('hidden');
       document.getElementById('messages-container').classList.remove('hidden');
+      
       const container = document.getElementById('messages-container');
       const msgDiv = document.createElement('div');
       msgDiv.className = 'message ' + role;
+      
       const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      msgDiv.innerHTML = `<div class="message-header"><div class="message-avatar">${role === 'user' ? 'U' : 'B'}</div><div class="message-role">${role === 'user' ? 'You' : 'BONIPHACE'}</div><div class="message-time">${time}</div></div><div class="message-content">${formatMessage(content)}</div>`;
+      
+      msgDiv.innerHTML = `
+        <div class="message-header">
+          <div class="message-avatar">${role === 'user' ? 'U' : 'B'}</div>
+          <div class="message-role">${role === 'user' ? 'You' : 'BONIPHACE'}</div>
+          <div style="margin-left:auto;font-size:12px;color:#a3a3a3;">${time}</div>
+        </div>
+        <div class="message-content">${content}</div>
+      `;
+      
       container.appendChild(msgDiv);
       document.getElementById('chat-area').scrollTop = document.getElementById('chat-area').scrollHeight;
-    }
-    
-    function formatMessage(text) {
-      if (!text) return '';
-      text = text.replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>');
-      text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
-      text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-      text = text.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-      text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
-      text = text.replace(/^### (.+)$/gm, '<h3>$1</h3>');
-      text = text.replace(/^## (.+)$/gm, '<h2>$1</h2>');
-      text = text.replace(/^# (.+)$/gm, '<h1>$1</h1>');
-      text = text.replace(/^- (.+)$/gm, '<li>$1</li>');
-      return text;
     }
     
     async function sendMessage() {
@@ -364,140 +285,50 @@
       const text = input.value.trim();
       if (!text) return;
       
+      // Add user message
       addMessage('user', text);
       messageHistory.push({ role: 'user', content: text });
       input.value = '';
-      input.style.height = 'auto';
       
-      const sendBtn = document.getElementById('send-btn');
-      sendBtn.disabled = true;
-      
+      // Show typing indicator
       const typingDiv = document.createElement('div');
       typingDiv.className = 'message assistant';
-      typingDiv.innerHTML = `<div class="message-header"><div class="message-avatar">B</div><div class="message-role">BONIPHACE</div></div><div class="typing-indicator"><span></span><span></span><span></span></div>`;
+      typingDiv.innerHTML = `
+        <div class="message-header">
+          <div class="message-avatar">B</div>
+          <div class="message-role">BONIPHACE</div>
+        </div>
+        <div class="message-content">Thinking...</div>
+      `;
       document.getElementById('messages-container').appendChild(typingDiv);
       document.getElementById('chat-area').scrollTop = document.getElementById('chat-area').scrollHeight;
       
-      try {
-        if (typeof puter === 'undefined') {
-          throw new Error('Puter.js not loaded. Please refresh the page.');
-        }
-        
-        const systemPrompt = `You are BONIPHACE, a personal AI assistant. Be helpful, professional, and friendly. Communicate in English and Kiswahili. ${currentDepth === 'deep' ? 'Provide detailed technical explanations.' : 'Keep responses concise and simple.'}`;
-        
-        const messages = [
-          { role: 'system', content: systemPrompt },
-          ...messageHistory
-        ];
-        
-        console.log('Sending to Puter AI:', messages);
-        
-        const response = await puter.ai.chat(messages);
-        console.log('Puter AI response:', response);
-        
+      // Simulate AI response (replace this with real AI later)
+      setTimeout(() => {
         typingDiv.remove();
         
+        // Simple response logic
         let reply = '';
-        if (typeof response === 'string') {
-          reply = response;
-        } else if (response && response.message) {
-          reply = response.message.content || response.message.text || '';
-        } else if (response && response.text) {
-          reply = response.text;
-        } else {
-          console.error('Unexpected response format:', response);
-          reply = 'I received your message but could not generate a response. Please try again.';
-        }
+        const lowerText = text.toLowerCase();
         
-        if (!reply) {
-          reply = 'I received your message but the response was empty. Please try again.';
+        if (lowerText.includes('hello') || lowerText.includes('hi')) {
+          reply = 'Hello! How can I assist you today?';
+        } else if (lowerText.includes('how are you')) {
+          reply = "I'm doing well, thank you! How can I help you?";
+        } else if (lowerText.includes('name')) {
+          reply = 'I am BONIPHACE, your personal AI assistant.';
+        } else if (lowerText.includes('help')) {
+          reply = 'I can help you with:\n- Answering questions\n- Providing information\n- Having conversations\n- And much more!\n\nWhat would you like to know?';
+        } else if (lowerText.includes('thank')) {
+          reply = "You're welcome! Feel free to ask me anything.";
+        } else {
+          reply = `I received your message: "${text}"\n\nThis is a demo response. To enable full AI capabilities, we need to integrate with an AI service like OpenAI, Puter, or others.\n\nFor now, try asking:\n- "Hello"\n- "How are you?"\n- "What is your name?"\n- "Help"`;
         }
         
         addMessage('assistant', reply);
         messageHistory.push({ role: 'assistant', content: reply });
-        
-        if (reply.includes('```memory')) {
-          const memoryMatch = reply.match(/```memory\s*\n([\s\S]*?)\n```/);
-          if (memoryMatch) {
-            try {
-              const cmd = JSON.parse(memoryMatch[1]);
-              if (cmd.action === 'add') {
-                await fetch('/api/memories', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ content: cmd.content, category: cmd.category || 'general' }) });
-                await loadData();
-              }
-            } catch(e) { console.error('Memory save failed:', e); }
-          }
-        }
-      } catch (err) {
-        typingDiv.remove();
-        console.error('AI Error:', err);
-        const errorMsg = err.message || 'Unknown error occurred';
-        addMessage('assistant', `⚠️ Error: ${errorMsg}\n\nPlease try again or refresh the page.`);
-      } finally {
-        sendBtn.disabled = false;
-      }
+      }, 1000);
     }
-    
-    function handleKeyDown(e) {
-      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-    }
-    
-    function startVoice() {
-      if (!('webkitSpeechRecognition' in window)) { alert('Voice input not supported in this browser'); return; }
-      const recognition = new webkitSpeechRecognition();
-      recognition.lang = 'en-US';
-      recognition.continuous = false;
-      recognition.interimResults = false;
-      recognition.onresult = (event) => { document.getElementById('message-input').value += event.results[0][0].transcript; };
-      recognition.start();
-    }
-    
-    function handleFileUpload(event) {
-      const file = event.target.files[0];
-      if (file) { alert('File upload feature coming soon!'); }
-    }
-    
-    function renderMemories() {
-      const list = document.getElementById('memory-list');
-      if (memories.length === 0) { list.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-secondary);">No memories yet. Say "remember that..." in chat to create memories.</div>'; return; }
-      list.innerHTML = memories.map(m => `<div class="memory-item"><div class="memory-content">${m.content}<div class="memory-category">${m.category || 'general'}</div></div><button class="memory-delete" onclick="deleteMemory(${m.id})">🗑️</button></div>`).join('');
-    }
-    
-    async function deleteMemory(id) {
-      if (!confirm('Delete this memory?')) return;
-      try { await fetch(`/api/memories/${id}`, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token } }); await loadData(); } catch(e) { console.error('Delete failed:', e); }
-    }
-    
-    async function clearAllMemories() {
-      if (!confirm('Delete ALL memories?')) return;
-      try { await fetch('/api/memories', { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token } }); await loadData(); } catch(e) { console.error('Clear failed:', e); }
-    }
-    
-    function toggleMemory() { saveSettings(); }
-    
-    function toggleSetting(setting) {
-      const toggle = document.getElementById('toggle-' + setting);
-      toggle.classList.toggle('active');
-      saveSettings();
-    }
-    
-    async function saveSettings() {
-      const settings = {
-        response_style: document.getElementById('setting-style').value,
-        language: document.getElementById('setting-language').value,
-        voice_enabled: document.getElementById('toggle-voice').classList.contains('active') ? 1 : 0,
-        tts_enabled: document.getElementById('toggle-tts').classList.contains('active') ? 1 : 0,
-        memory_enabled: document.getElementById('memory-enabled').checked ? 1 : 0
-      };
-      try { await fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify(settings) }); } catch(e) { console.error('Save settings failed:', e); }
-    }
-    
-    document.getElementById('message-input').addEventListener('input', function() {
-      this.style.height = 'auto';
-      this.style.height = Math.min(this.scrollHeight, 200) + 'px';
-    });
-    
-    boot();
   </script>
 </body>
 </html>
