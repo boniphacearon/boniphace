@@ -1,18 +1,22 @@
-import { api } from './app.js';
+import { api } from './api.js';
 
 export const Projects = {
   projects: [],
   async load() {
-    const data = await api('/api/projects');
-    this.projects = data.projects;
-    this.render();
+    try {
+      const data = await api('/api/projects');
+      this.projects = data.projects || [];
+      this.render();
+    } catch (err) {
+      console.error('Error loading projects:', err);
+    }
   },
   render() {
     const el = document.getElementById('projects-list');
     if (!el) return;
     el.innerHTML = this.projects.map(p => `
       <div class="list-item" data-id="${p.id}">
-        <span><span style="color:${p.color}">●</span> ${escapeHtml(p.name)}</span>
+        <span><span style="color:${p.color}">●</span> ${this.escapeHtml(p.name)}</span>
       </div>
     `).join('') || '<p class="muted">No projects yet</p>';
     el.querySelectorAll('.list-item').forEach(item => {
@@ -27,11 +31,17 @@ export const Projects = {
     const name = prompt('Project name:');
     if (!name) return;
     const description = prompt('Description (optional):') || '';
-    await api('/api/projects', { method: 'POST', body: { name, description } });
-    this.load();
+    try {
+      await api('/api/projects', { method: 'POST', body: { name, description } });
+      this.load();
+    } catch (err) {
+      console.error('Error creating project:', err);
+      alert('Failed to create project: ' + err.message);
+    }
+  },
+  escapeHtml(s) {
+    return String(s || '').replace(/[&<>"']/g, c => 
+      ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])
+    );
   }
 };
-
-function escapeHtml(s) {
-  return String(s || '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
-}
