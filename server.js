@@ -22,7 +22,7 @@ fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 fs.mkdirSync(path.join(UPLOAD_DIR, 'user-files'), { recursive: true });
 
 // Security & Middleware
-app.use(helmet({ contentSecurityPolicy: false })); // Disabled CSP for easier PWA setup
+app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors());
 app.use(express.json({ limit: '5mb' }));
 
@@ -63,17 +63,6 @@ function generateToken(user) {
   return jwt.sign({ id: user.id, email: user.email, username: user.username }, JWT_SECRET, { expiresIn: '7d' });
 }
 
-function logActivity(userId, action, details) {
-  try {
-    db.prepare('INSERT INTO activity_logs (user_id, action, details) VALUES (?, ?, ?)').run(userId, action, JSON.stringify(details || {}));
-  } catch (e) { console.error('Log error:', e); }
-}
-
-// Static files
-app.use(express.static(path.join(__dirname, 'public'), {
-  setHeaders: (res, filePath) => { if (filePath.endsWith('sw.js')) res.setHeader('Cache-Control', 'no-cache'); }
-}));
-
 // --- AUTH ROUTES ---
 app.post('/api/auth/signup', async (req, res) => {
   try {
@@ -89,7 +78,6 @@ app.post('/api/auth/signup', async (req, res) => {
     db.prepare('INSERT INTO user_settings (user_id) VALUES (?)').run(result.lastInsertRowid);
     
     const user = { id: result.lastInsertRowid, email: email.toLowerCase(), username: username.toLowerCase(), display_name: displayName || username };
-    logActivity(user.id, 'signup', { ip: req.ip });
     res.json({ user, token: generateToken(user) });
   } catch (e) { res.status(400).json({ error: e.message }); }
 });
@@ -103,7 +91,6 @@ app.post('/api/auth/login', async (req, res) => {
     if (!ok) throw new Error('Invalid credentials');
     
     const safeUser = { id: user.id, email: user.email, username: user.username, display_name: user.display_name };
-    logActivity(user.id, 'login', { ip: req.ip });
     res.json({ user: safeUser, token: generateToken(safeUser) });
   } catch (e) { res.status(401).json({ error: e.message }); }
 });
@@ -253,11 +240,30 @@ app.get('/api/dashboard', authMiddleware, (req, res) => {
 // SPA Fallback
 app.get('*', (req, res) => { res.sendFile(path.join(__dirname, 'public', 'index.html')); });
 
+// --- AUTO-LOGIN USER CREATION ---
+async function ensureDefaultUser() {
+  try {
+    const user = db.prepare('SELECT id FROM users WHERE username = ?').get('admin');
+    if (!user) {
+      const hash = await bcrypt.hash('admin123', 12);
+      const res = db.prepare('INSERT INTO users (email, username, password_hash, display_name) VALUES (?, ?, ?, ?)').run('admin@boniphace.local', 'admin', hash, 'Admin');
+      db.prepare('INSERT INTO user_settings (user_id) VALUES (?)').run(res.lastInsertRowid);
+      console.log('✅ Created default auto-login user: admin / admin123');
+    } else {
+      console.log('✅ Default admin user already exists');
+    }
+  } catch (err) {
+    console.error('Error creating default user:', err);
+  }
+}
+
 // START SERVER
 async function startServer() {
   await db.init();
+  await ensureDefaultUser(); 
+  
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🟢 BONIPHACE running on http://localhost:${PORT}`);
+    console.log(` BONIPHACE running on http://localhost:${PORT}`);
   });
 }
 
