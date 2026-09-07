@@ -6,7 +6,7 @@ import { Voice } from './voice.js';
 import { Projects } from './projects.js';
 import { Settings } from './settings.js';
 
-// State object - MUST be defined before anything else
+// State object
 const state = {
   token: localStorage.getItem('bp_token'),
   user: null,
@@ -19,13 +19,38 @@ const state = {
 
 window.BP = state;
 
-// BOOT FUNCTION
+// BOOT FUNCTION - AUTO LOGIN
 async function boot() {
+  // 1. Try to Auto-Login as Admin
+  try {
+    const response = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'admin', password: 'admin123' })
+    });
+    
+    const data = await response.json();
+    if (response.ok) {
+      state.token = data.token;
+      state.user = data.user;
+      localStorage.setItem('bp_token', data.token);
+      console.log('✅ Auto-login successful');
+    } else {
+      console.warn('Auto-login failed:', data.error);
+    }
+  } catch (err) {
+    console.error('Auto-login error:', err);
+  }
+
+  // 2. Load the App
   if (state.token) {
     try {
-      const me = await Auth.me(state.token);
-      state.user = me.user;
-      state.settings = me.settings || {};
+      // If we don't have user details yet, fetch them
+      if (!state.user) {
+        const me = await Auth.me(state.token);
+        state.user = me.user;
+        state.settings = me.settings || {};
+      }
       showApp();
       await Promise.all([
         Projects.load(),
@@ -34,14 +59,14 @@ async function boot() {
         Settings.load()
       ]);
     } catch (err) {
-      console.error('Boot error:', err);
-      localStorage.removeItem('bp_token');
-      state.token = null;
-      showAuth();
+      console.error('App load error:', err);
+      document.body.innerHTML = '<h1 style="color:white; text-align:center; margin-top:50px; font-family:sans-serif;">Error loading app. Please refresh.</h1>';
     }
   } else {
-    showAuth();
+    // Fallback if everything fails
+    document.body.innerHTML = '<h1 style="color:#6EE7B7; font-family:sans-serif; text-align:center; margin-top:20%;">BONIPHACE<br><span style="font-size:16px; color:white;">Connecting to server...</span></h1>';
   }
+  
   registerSW();
   setupInstallPrompt();
 }
@@ -112,11 +137,10 @@ document.addEventListener('DOMContentLoaded', () => {
     newProjectBtn.addEventListener('click', () => Projects.create());
   }
 
-  // Logout button
+  // Logout button (Just reloads for now since we auto-login)
   const logoutBtn = document.getElementById('logout-btn');
   if (logoutBtn) {
     logoutBtn.addEventListener('click', () => {
-      localStorage.removeItem('bp_token');
       location.reload();
     });
   }
@@ -175,9 +199,6 @@ function setupInstallPrompt() {
     });
   }
 }
-
-// Make api available globally for auth.js
-window.api = api;
 
 // Start the app
 boot();
