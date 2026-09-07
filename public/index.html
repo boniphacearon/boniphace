@@ -15,54 +15,19 @@
   <link rel="apple-touch-icon" href="/icons/icon-192.png" />
   <link rel="stylesheet" href="/css/style.css" />
 
-  <!-- Puter.js: Free AI, no API key needed -->
   <script src="https://js.puter.com/v2/"></script>
 </head>
 <body>
-  <!-- AUTH SCREEN -->
-  <div id="auth-screen" class="screen active">
+  <!-- AUTH SCREEN (HIDDEN BY DEFAULT) -->
+  <div id="auth-screen" class="screen" style="display:none;">
     <div class="auth-card">
-      <div class="logo">
-        <svg viewBox="0 0 512 512" width="72" height="72">
-          <defs>
-            <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stop-color="#6EE7B7"/>
-              <stop offset="100%" stop-color="#34D399"/>
-            </linearGradient>
-          </defs>
-          <polygon points="256,20 470,140 470,372 256,492 42,372 42,140" fill="url(#lg)"/>
-          <text x="256" y="330" font-family="Arial" font-size="280" font-weight="900" text-anchor="middle" fill="#0a0a0a">B</text>
-        </svg>
-      </div>
       <h1>BONIPHACE</h1>
       <p class="tagline">Your Personal AI Assistant</p>
-
-      <div class="auth-tabs">
-        <button class="tab active" data-tab="login">Login</button>
-        <button class="tab" data-tab="signup">Sign Up</button>
-      </div>
-
-      <form id="login-form" class="auth-form active">
-        <input type="text" id="login-email" placeholder="Email or username" required autocomplete="username" />
-        <input type="password" id="login-password" placeholder="Password" required autocomplete="current-password" />
-        <button type="submit" class="btn-primary">Login</button>
-        <p class="auth-error" id="login-error"></p>
-      </form>
-
-      <form id="signup-form" class="auth-form">
-        <input type="email" id="signup-email" placeholder="Email" required />
-        <input type="text" id="signup-username" placeholder="Username (letters/numbers/underscore only)" required pattern="[a-z0-9_]{3,30}" />
-        <input type="text" id="signup-display" placeholder="Display name (optional)" />
-        <input type="password" id="signup-password" placeholder="Password (min 8 characters)" required minlength="8" />
-        <button type="submit" class="btn-primary">Create Account</button>
-        <p class="auth-error" id="signup-error"></p>
-      </form>
     </div>
   </div>
 
-  <!-- MAIN APP -->
-  <div id="app-screen" class="screen">
-    <!-- Sidebar -->
+  <!-- MAIN APP (ACTIVE BY DEFAULT) -->
+  <div id="app-screen" class="screen active">
     <aside id="sidebar" class="sidebar">
       <div class="sidebar-header">
         <div class="brand">
@@ -74,54 +39,42 @@
         </div>
         <button id="new-chat-btn" class="icon-btn" title="New conversation">＋</button>
       </div>
-
       <div class="sidebar-section">
         <div class="section-title">Projects</div>
         <div id="projects-list" class="list"></div>
         <button id="new-project-btn" class="text-btn">+ New Project</button>
       </div>
-
       <div class="sidebar-section">
         <div class="section-title">Recent Chats</div>
         <div id="conversations-list" class="list"></div>
       </div>
-
       <div class="sidebar-footer">
         <button data-view="dashboard" class="nav-btn">📊 Dashboard</button>
-        <button data-view="memory" class="nav-btn">🧠 Memory</button>
-        <button data-view="tools" class="nav-btn">🛠 Tools</button>
+        <button data-view="memory" class="nav-btn"> Memory</button>
+        <button data-view="tools" class="nav-btn"> Tools</button>
         <button data-view="settings" class="nav-btn">⚙️ Settings</button>
-        <button id="logout-btn" class="nav-btn"> Logout</button>
       </div>
     </aside>
 
-    <!-- Main content -->
     <main id="main-content">
       <header class="topbar">
         <button id="sidebar-toggle" class="icon-btn">☰</button>
-        <div class="topbar-title">
-          <span id="view-title">BONIPHACE — Your Personal AI Assistant</span>
-        </div>
+        <div class="topbar-title"><span id="view-title">BONIPHACE — Your Personal AI Assistant</span></div>
         <div class="topbar-actions">
           <div class="depth-toggle" title="Answer depth">
             <button id="depth-simple" class="depth-btn active">Simple</button>
             <button id="depth-deep" class="depth-btn">Deep</button>
           </div>
-          <button id="install-btn" class="icon-btn hidden" title="Install app">⬇️</button>
-          <button id="profile-btn" class="icon-btn" title="Profile">👤</button>
+          <button id="install-btn" class="icon-btn hidden" title="Install app">️</button>
         </div>
       </header>
 
-      <!-- CHAT VIEW -->
       <section id="view-chat" class="view active">
         <div id="messages" class="messages"></div>
         <div class="composer">
           <div class="composer-row">
-            <label class="icon-btn file-label" title="Upload file">
-              📎
-              <input type="file" id="file-input" multiple hidden />
-            </label>
-            <button id="voice-btn" class="icon-btn" title="Voice input"></button>
+            <label class="icon-btn file-label" title="Upload file">📎<input type="file" id="file-input" multiple hidden /></label>
+            <button id="voice-btn" class="icon-btn" title="Voice input">🎤</button>
             <textarea id="message-input" placeholder="Ask BONIPHACE anything..." rows="1"></textarea>
             <button id="send-btn" class="send-btn" title="Send"></button>
           </div>
@@ -129,7 +82,6 @@
         </div>
       </section>
 
-      <!-- DASHBOARD VIEW -->
       <section id="view-dashboard" class="view">
         <div class="dashboard">
           <h2>Dashboard</h2>
@@ -142,7 +94,6 @@
         </div>
       </section>
 
-      <!-- MEMORY VIEW -->
       <section id="view-memory" class="view">
         <div class="panel">
           <h2>Memory</h2>
@@ -154,35 +105,21 @@
         </div>
       </section>
 
-      <!-- TOOLS VIEW -->
       <section id="view-tools" class="view">
         <div class="panel">
           <h2>Connected Tools</h2>
-          <p class="muted">Tools BONIPHACE can use on your behalf. Consequential actions always require your confirmation.</p>
+          <p class="muted">Tools BONIPHACE can use on your behalf.</p>
           <div id="tools-list" class="list"></div>
         </div>
       </section>
 
-      <!-- SETTINGS VIEW -->
       <section id="view-settings" class="view">
         <div class="panel">
           <h2>Settings</h2>
           <div class="settings-group">
             <h3>AI</h3>
-            <label>Response style
-              <select id="set-style">
-                <option value="professional">Professional</option>
-                <option value="friendly">Friendly</option>
-                <option value="concise">Concise</option>
-              </select>
-            </label>
-            <label>Language
-              <select id="set-lang">
-                <option value="en">English</option>
-                <option value="sw">Kiswahili</option>
-                <option value="auto">Auto (detect)</option>
-              </select>
-            </label>
+            <label>Response style <select id="set-style"><option value="professional">Professional</option><option value="friendly">Friendly</option><option value="concise">Concise</option></select></label>
+            <label>Language <select id="set-lang"><option value="en">English</option><option value="sw">Kiswahili</option><option value="auto">Auto (detect)</option></select></label>
           </div>
           <div class="settings-group">
             <h3>Voice</h3>
@@ -192,7 +129,6 @@
           <div class="settings-group">
             <h3>Account</h3>
             <p id="account-info"></p>
-            <button id="delete-account-btn" class="btn-danger">Delete Account</button>
           </div>
           <button id="save-settings-btn" class="btn-primary">Save Settings</button>
         </div>
